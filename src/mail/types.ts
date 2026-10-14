@@ -25,3 +25,16 @@ export interface MailBackend {
   deleteDraft(ref: MessageRef): Promise<void>;
   send(mail: Outgoing): Promise<{ accepted: string[]; rejected: string[]; messageId: string }>;
 }
+
+export type RecordEntry = { status: 'attempting' | 'sent' | 'uncertain' | 'rejected'; messageId: string; time: string; accepted?: string[]; rejected?: string[] };
+export type State = {
+  version: 1; drafts: Record<string, true>;
+  previews: Record<string, { ref: MessageRef; hash: string; expires: number }>;
+  sends: Record<string, RecordEntry>;
+};
+
+export interface StateStorePort {
+  read(): Promise<State>;
+  write(state: State): Promise<void>;
+  locked<T>(action: () => Promise<T>): Promise<T>;
+}

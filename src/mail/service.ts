@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
-import { MailError, safeError } from './errors.js';
-import { StateStore, refKey, snapshot } from './state.js';
-import type { MessageRef, DraftInput, MailBackend, Mail, Outgoing } from './types.js';
+import { MailError, safeError } from '../errors.js';
+import { refKey, snapshot } from './identity.js';
+import type { MessageRef, DraftInput, MailBackend, Mail, Outgoing, StateStorePort } from './types.js';
 
 const MAX_TEXT = 512 * 1024;
 const validAddress = (address: string) => /^[^\s<>@,;\r\n]+@[^\s<>@,;\r\n]+\.[^\s<>@,;\r\n]+$/.test(address) && address.length <= 254;
@@ -15,7 +15,7 @@ export function validateOutgoing(mail: Outgoing) {
 }
 
 export class MailService {
-  constructor(public backend: MailBackend, public store: StateStore) {}
+  constructor(public backend: MailBackend, public store: StateStorePort) {}
   private async outgoing(input: DraftInput): Promise<Outgoing> {
     const original = input.replyToMessage ? await this.backend.get(input.replyToMessage) : undefined;
     const recipients = input.to.length ? input.to : (original?.replyTo.length ? original.replyTo : original?.from ?? []).map(a => a.address).slice(0, 1);

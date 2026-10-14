@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { loadCredentials } from '../dist/credentials.js';
-import { safeError } from '../dist/errors.js';
-import { fixture } from './helpers.mjs';
+import { loadCredentials } from '../../dist/config/env.js';
+import { safeError } from '../../dist/errors.js';
+import { fixture } from '../support/helpers.mjs';
 
 test('credentials read exclusively from named environment variables, with surrounding whitespace trimmed', async () => {
   const env = { QQ_MAIL_ADDRESS: ' 123@QQ.COM ', QQ_MAIL_AUTH_CODE: ' synthetic-test-code ' };

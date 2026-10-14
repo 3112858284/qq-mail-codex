@@ -1,23 +1,11 @@
-import { mkdir, readFile, writeFile, rename, open, unlink } from 'node:fs/promises';
+import { mkdir, readFile, rename, open, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
-import { createHash, randomUUID } from 'node:crypto';
-import { MailError } from './errors.js';
-import type { MessageRef, Mail } from './types.js';
+import { randomUUID } from 'node:crypto';
+import { MailError } from '../errors.js';
+import type { State, StateStorePort } from '../mail/types.js';
 
-export const refKey = (ref: MessageRef) => JSON.stringify([ref.folder, ref.uidValidity, ref.uid]);
-export const accountKey = (account: string) => createHash('sha256').update(account.toLowerCase()).digest('hex').slice(0, 24);
-export const snapshot = (mail: Mail) => createHash('sha256').update(JSON.stringify({
-  from: mail.from, to: mail.to, cc: mail.cc, bcc: mail.bcc, subject: mail.subject, text: mail.text,
-  messageId: mail.messageId, inReplyTo: mail.inReplyTo, references: mail.references, rawHash: mail.rawHash,
-})).digest('hex');
-export type RecordEntry = { status: 'attempting' | 'sent' | 'uncertain' | 'rejected'; messageId: string; time: string; accepted?: string[]; rejected?: string[] };
-export type State = {
-  version: 1; drafts: Record<string, true>;
-  previews: Record<string, { ref: MessageRef; hash: string; expires: number }>;
-  sends: Record<string, RecordEntry>;
-};
 const empty = (): State => ({ version: 1, drafts: {}, previews: {}, sends: {} });
-export class StateStore {
+export class StateStore implements StateStorePort {
   constructor(public directory: string) {}
   async read(): Promise<State> {
     try {

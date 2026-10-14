@@ -1,0 +1,56 @@
+{
+  "account": "123@qq.com",
+  "accountKey": "61096e1e922eb5d878941375",
+  "mail": {
+    "ref": {
+      "folder": "Drafts",
+      "uidValidity": "10",
+      "uid": 7
+    },
+    "from": [
+      {
+        "name": "",
+        "address": "123@qq.com"
+      }
+    ],
+    "to": [
+      {
+        "name": "",
+        "address": "a@example.com"
+      }
+    ],
+    "cc": [],
+    "bcc": [],
+    "subject": "Legacy",
+    "text": "old draft",
+    "messageId": "<old@example.com>",
+    "references": [],
+    "rawHash": "abc"
+  },
+  "key": "[\"Drafts\",\"10\",7]",
+  "hash": "3e177fbc0d17e3b37047c7d9797145c114595de9ce9faf52087e65c6cfb27d29",
+  "state": {
+    "version": 1,
+    "drafts": {
+      "[\"Drafts\",\"10\",7]": true
+    },
+    "previews": {
+      "old-preview": {
+        "ref": {
+          "folder": "Drafts",
+          "uidValidity": "10",
+          "uid": 7
+        },
+        "hash": "3e177fbc0d17e3b37047c7d9797145c114595de9ce9faf52087e65c6cfb27d29",
+        "expires": 9999999999999
+      }
+    },
+    "sends": {
+      "[\"Drafts\",\"10\",7]": {
+        "status": "attempting",
+        "messageId": "<old@example.com>",
+        "time": "2026-10-14T00:00:00.000Z"
+      }
+    }
+  }
+}

@@ -5,7 +5,7 @@
       "type": "stdio",
       "command": "node",
       "args": [
-        "${PLUGIN_ROOT}/dist/server.js"
+        "${PLUGIN_ROOT}/dist/cli/serve.js"
       ],
       "cwd": "${PLUGIN_ROOT}",
       "env_vars": [

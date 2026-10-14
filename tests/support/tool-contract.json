@@ -1,0 +1,418 @@
+[
+  {
+    "name": "check_connection",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "list_folders",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "search_messages",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "folder": {
+          "default": "INBOX",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "from": {
+          "type": "string",
+          "maxLength": 254
+        },
+        "to": {
+          "type": "string",
+          "maxLength": 254
+        },
+        "subject": {
+          "type": "string",
+          "maxLength": 998
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "since": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "before": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "unread": {
+          "type": "boolean"
+        },
+        "pageSize": {
+          "default": 20,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "cursor": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "get_message",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "object",
+          "properties": {
+            "folder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "uidValidity": {
+              "type": "string",
+              "pattern": "^[1-9]\\d{0,30}$"
+            },
+            "uid": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "folder",
+            "uidValidity",
+            "uid"
+          ]
+        }
+      },
+      "required": [
+        "message"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "create_draft",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "to": {
+          "default": [],
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "cc": {
+          "default": [],
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "bcc": {
+          "default": [],
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "subject": {
+          "default": "",
+          "type": "string",
+          "maxLength": 998
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 524288
+        },
+        "replyToMessage": {
+          "type": "object",
+          "properties": {
+            "folder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "uidValidity": {
+              "type": "string",
+              "pattern": "^[1-9]\\d{0,30}$"
+            },
+            "uid": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "folder",
+            "uidValidity",
+            "uid"
+          ]
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "update_draft",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "draft": {
+          "type": "object",
+          "properties": {
+            "folder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "uidValidity": {
+              "type": "string",
+              "pattern": "^[1-9]\\d{0,30}$"
+            },
+            "uid": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "folder",
+            "uidValidity",
+            "uid"
+          ]
+        },
+        "to": {
+          "default": [],
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "cc": {
+          "default": [],
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "bcc": {
+          "default": [],
+          "maxItems": 50,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "subject": {
+          "default": "",
+          "type": "string",
+          "maxLength": 998
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 524288
+        },
+        "replyToMessage": {
+          "type": "object",
+          "properties": {
+            "folder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "uidValidity": {
+              "type": "string",
+              "pattern": "^[1-9]\\d{0,30}$"
+            },
+            "uid": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "folder",
+            "uidValidity",
+            "uid"
+          ]
+        }
+      },
+      "required": [
+        "draft",
+        "text"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "preview_draft",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "draft": {
+          "type": "object",
+          "properties": {
+            "folder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "uidValidity": {
+              "type": "string",
+              "pattern": "^[1-9]\\d{0,30}$"
+            },
+            "uid": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "folder",
+            "uidValidity",
+            "uid"
+          ]
+        }
+      },
+      "required": [
+        "draft"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "send_draft",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "draft": {
+          "type": "object",
+          "properties": {
+            "folder": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            },
+            "uidValidity": {
+              "type": "string",
+              "pattern": "^[1-9]\\d{0,30}$"
+            },
+            "uid": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 4294967295
+            }
+          },
+          "required": [
+            "folder",
+            "uidValidity",
+            "uid"
+          ]
+        },
+        "previewToken": {
+          "type": "string",
+          "format": "uuid",
+          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+        },
+        "userConfirmed": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "draft",
+        "previewToken",
+        "userConfirmed"
+      ],
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    }
+  }
+]

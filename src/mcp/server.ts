@@ -1,23 +1,12 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { QQBackend } from './backend.js';
-import { loadCredentials, dataDirectory } from './credentials.js';
-import { StateStore, accountKey } from './state.js';
-import { MailService } from './service.js';
-import { safeError } from './errors.js';
-import { join } from 'node:path';
-
-const ref = z.object({ folder: z.string().min(1).max(512), uidValidity: z.string().regex(/^[1-9]\d{0,30}$/), uid: z.number().int().positive().max(4294967295) });
-const address = z.string().email().max(254).refine(s => !/[\r\n<>;,]/.test(s));
-const draft = {
-  to: z.array(address).max(50).default([]), cc: z.array(address).max(50).default([]), bcc: z.array(address).max(50).default([]),
-  subject: z.string().max(998).refine(s => !/[\r\n]/.test(s)).default(''), text: z.string().max(512 * 1024), replyToMessage: ref.optional(),
-};
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => { const d = new Date(s); return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s; });
+import { messageRefSchema as ref, draftSchema as draft, dateSchema as date } from './schemas.js';
+import { MailService } from '../mail/service.js';
+import { safeError } from '../errors.js';
+import { pluginVersion } from '../config/paths.js';
 
 export function buildServer(resolveService: () => Promise<MailService>) {
-  const server = new McpServer({ name: 'qq-mail', version: '0.2.0' });
+  const server = new McpServer({ name: 'qq-mail', version: pluginVersion });
   const run = (action: (s: MailService, args: any) => Promise<unknown>) => async (args: any) => {
     try {
       const result = await action(await resolveService(), args);
@@ -42,15 +31,4 @@ export function buildServer(resolveService: () => Promise<MailService>) {
   server.registerTool('preview_draft', { title: '预览发送内容', description: '读取 QQ 草稿箱的当前草稿并生成 30 分钟有效的预览令牌。向用户完整展示发件人、全部 To/Cc/Bcc、主题和正文，等待用户针对本次预览明确确认；令牌本身不代表确认。只支持本插件创建的无附件草稿。', inputSchema: { draft: ref }, annotations: { ...write, idempotentHint: true } }, run((s, a) => s.previewDraft(a.draft)));
   server.registerTool('send_draft', { title: '确认发送 QQ 草稿', description: '向外部收件人发送已预览的 QQ 草稿。仅在用户看到完整收件人、主题、正文并明确确认后调用，userConfirmed 必须为 true。使用最新 previewToken；草稿变化或令牌过期时重新预览确认。发送结果不明时不得重试；SMTP 接受不保证收件箱送达。', inputSchema: { draft: ref, previewToken: z.string().uuid(), userConfirmed: z.literal(true) }, annotations: { ...write, destructiveHint: true } }, run((s, a) => s.sendDraft(a.draft, a.previewToken, a.userConfirmed)));
   return server;
-}
-
-export async function productionService() {
-  const credentials = await loadCredentials();
-  return new MailService(new QQBackend(credentials.account, credentials.authorizationCode), new StateStore(join(dataDirectory(), accountKey(credentials.account))));
-}
-if (process.argv[1] && new URL(import.meta.url).pathname.toLowerCase().endsWith('/server.js') && /[\\/]server\.js$/i.test(process.argv[1])) {
-  const server = buildServer(productionService);
-  process.on('SIGINT', () => { void server.close().finally(() => process.exit(0)); });
-  process.on('SIGTERM', () => { void server.close().finally(() => process.exit(0)); });
-  await server.connect(new StdioServerTransport());
 }

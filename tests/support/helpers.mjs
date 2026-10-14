@@ -1,9 +1,10 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { randomUUID, createHash } from 'node:crypto';
-import { StateStore, refKey } from '../dist/state.js';
-import { MailService } from '../dist/service.js';
-import { MailError } from '../dist/errors.js';
+import { StateStore } from '../../dist/storage/state-store.js';
+import { refKey } from '../../dist/mail/identity.js';
+import { MailService } from '../../dist/mail/service.js';
+import { MailError } from '../../dist/errors.js';
 
 export const scratch = resolve(process.env.QQ_MAIL_TEST_ROOT ?? 'work/tests');
 export class FakeBackend {
