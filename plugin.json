@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "qq-mail",
+  "version": "0.2.0",
+  "description": "在 Codex 中读取和搜索 QQ 邮箱，同步草稿并经确认发送和回复。",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "QQ 邮箱",
+        "shortDescription": "读取、搜索、起草和确认发送 QQ 邮件",
+        "longDescription": "本机连接个人 QQ 邮箱，从 QQ_MAIL_ADDRESS 和 QQ_MAIL_AUTH_CODE 环境变量读取凭据；草稿同步至 QQ 邮箱，发送前确认内容。",
+        "developerName": "Personal tools",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "defaultPrompt": ["查看 QQ 邮箱最近的未读邮件", "帮我起草一封回复，先让我确认内容"]
+      }
+    }
+  }
+}

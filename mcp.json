@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "qq_mail": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${PLUGIN_ROOT}/dist/server.js"
+      ],
+      "cwd": "${PLUGIN_ROOT}",
+      "env_vars": [
+        "QQ_MAIL_ADDRESS",
+        "QQ_MAIL_AUTH_CODE",
+        "LOCALAPPDATA"
+      ]
+    }
+  }
+}
