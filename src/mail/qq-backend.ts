@@ -1,57 +1,12 @@
 import { ImapFlow } from 'imapflow';
 import nodemailer from 'nodemailer';
-import { simpleParser, type ParsedMail, type AddressObject } from 'mailparser';
-import { createHash } from 'node:crypto';
-import { createRequire } from 'node:module';
-import { MailError } from './errors.js';
-import type { MailBackend, MessageRef, Mail, Address, Outgoing, SearchInput } from './types.js';
+import { MailError } from '../errors.js';
+import { pluginVersion } from '../config/paths.js';
+import { parseMessage } from './parser.js';
+import { searchQuery, selectPage } from './search.js';
+import type { MailBackend, MessageRef, Mail, Outgoing, SearchInput } from './types.js';
 
 const MAX_SOURCE = 10 * 1024 * 1024;
-const MAX_BODY = 512 * 1024;
-const htmlToText = createRequire(import.meta.url)('html-to-text').convert as (html: string, options?: Record<string, unknown>) => string;
-const addresses = (input: AddressObject | AddressObject[] | undefined): Address[] =>
-  (Array.isArray(input) ? input : input ? [input] : []).flatMap(a => a.value)
-    .filter(a => a.address).map(a => ({ name: a.name ?? '', address: a.address! }));
-export async function parseMessage(source: Buffer, ref: MessageRef, flags: string[] = []): Promise<Mail> {
-  const parsed: ParsedMail = await simpleParser(source, { keepCidLinks: true, skipImageLinks: true, skipTextToHtml: true, skipHtmlToText: true });
-  const html = typeof parsed.html === 'string' ? parsed.html : '';
-  const text = parsed.text || (html ? htmlToText(html.slice(0, MAX_BODY), { wordwrap: false }) : '');
-  return {
-    ref, from: addresses(parsed.from), replyTo: addresses(parsed.replyTo), to: addresses(parsed.to), cc: addresses(parsed.cc), bcc: addresses(parsed.bcc),
-    subject: parsed.subject ?? '', text: text.slice(0, MAX_BODY), date: parsed.date?.toISOString() ?? null,
-    messageId: parsed.messageId ?? '', inReplyTo: parsed.inReplyTo,
-    references: Array.isArray(parsed.references) ? parsed.references : parsed.references ? [parsed.references] : [],
-    attachments: parsed.attachments.map(a => ({ name: a.filename ?? '', size: a.size, contentType: a.contentType })),
-    flags, rawHash: createHash('sha256').update(source).digest('hex'), bodyTruncated: text.length > MAX_BODY || (!parsed.text && html.length > MAX_BODY),
-  };
-}
-export function searchQuery(input: SearchInput) {
-  const q: Record<string, unknown> = { all: true };
-  for (const key of ['from', 'to', 'subject'] as const) if (input[key]) q[key] = input[key];
-  if (input.text) q.body = input.text;
-  if (input.since) q.since = new Date(input.since + 'T00:00:00Z');
-  if (input.before) q.before = new Date(input.before + 'T00:00:00Z');
-  if (input.unread !== undefined) q.seen = !input.unread;
-  return q;
-}
-const queryHash = (input: SearchInput) => createHash('sha256').update(JSON.stringify(searchQuery(input))).digest('hex');
-export function selectPage(uids: number[], input: SearchInput, folder: string, uidValidity: string) {
-  let upper = Infinity;
-  if (input.cursor) {
-    try {
-      const c = JSON.parse(Buffer.from(input.cursor, 'base64url').toString('utf8'));
-      if (c.folder !== folder || c.uidValidity !== uidValidity || c.query !== queryHash(input) || !Number.isSafeInteger(c.lastUid) || c.lastUid < 1) throw new Error('invalid');
-      upper = c.lastUid;
-    } catch { throw new MailError('CURSOR_INVALID', '搜索游标已失效或搜索条件已改变，请从第一页重新搜索。'); }
-  }
-  const candidates = uids.filter(uid => uid < upper).sort((a, b) => b - a);
-  const selected = candidates.slice(0, input.pageSize ?? 20);
-  return {
-    selected,
-    nextCursor: candidates.length > selected.length ? Buffer.from(JSON.stringify({ folder, uidValidity, query: queryHash(input), lastUid: selected.at(-1) })).toString('base64url') : null,
-  };
-}
-
 export class QQBackend implements MailBackend {
   constructor(public account: string, private authorizationCode: string) {}
   private client() {
@@ -61,7 +16,7 @@ export class QQBackend implements MailBackend {
       tls: { rejectUnauthorized: true, minVersion: 'TLSv1.2' },
       logger: false, emitLogs: false,
       connectionTimeout: 20000, greetingTimeout: 20000, socketTimeout: 45000,
-      clientInfo: { name: 'QQ Mail Codex', version: '0.2.0' },
+      clientInfo: { name: 'QQ Mail Codex', version: pluginVersion },
     });
     // No raw protocol errors reach stdout/stderr or MCP results.
     client.on('error', () => undefined);

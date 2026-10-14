@@ -4,8 +4,8 @@ import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { buildServer } from '../dist/server.js';
-import { fixture } from './helpers.mjs';
+import { buildServer } from '../../dist/mcp/server.js';
+import { fixture } from '../support/helpers.mjs';
 
 test('official MCP client lists and invokes real tool schemas over transport', async t => {
   const { service } = await fixture(t); const server = buildServer(async () => service);
@@ -26,7 +26,7 @@ test('production stdio server starts cleanly and returns NOT_CONFIGURED without 
   const client = new Client({ name: 'stdio-test', version: '1' });
   const env = { ...process.env, LOCALAPPDATA: dir };
   delete env.QQ_MAIL_ADDRESS; delete env.QQ_MAIL_AUTH_CODE;
-  const transport = new StdioClientTransport({ command: process.execPath, args: [join(process.cwd(), 'dist/server.js')], env, stderr: 'pipe' });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [join(process.cwd(), 'dist/cli/serve.js')], env, stderr: 'pipe' });
   let stderr = ''; transport.stderr?.on('data', chunk => { stderr += chunk.toString(); });
   await client.connect(transport); t.after(() => client.close());
   const result = await client.callTool({ name: 'check_connection', arguments: {} });
@@ -36,7 +36,7 @@ test('production stdio server starts cleanly and returns NOT_CONFIGURED without 
 test('production stdio server reads forwarded variables and redacts them on validation failure', async t => {
   const { dir } = await fixture(t);
   const client = new Client({ name: 'env-stdio-test', version: '1' });
-  const transport = new StdioClientTransport({ command: process.execPath, args: [join(process.cwd(), 'dist/server.js')], env: {
+  const transport = new StdioClientTransport({ command: process.execPath, args: [join(process.cwd(), 'dist/cli/serve.js')], env: {
     ...process.env, LOCALAPPDATA: dir, QQ_MAIL_ADDRESS: 'invalid-synthetic-account', QQ_MAIL_AUTH_CODE: 'synthetic-env-secret',
   }, stderr: 'pipe' });
   let stderr = ''; transport.stderr?.on('data', chunk => { stderr += chunk.toString(); });

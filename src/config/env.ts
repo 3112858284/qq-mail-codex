@@ -1,10 +1,5 @@
-import { join } from 'node:path';
-import { MailError } from './errors.js';
+import { MailError } from '../errors.js';
 
-export const dataDirectory = () => {
-  if (!process.env.LOCALAPPDATA) throw new MailError('WINDOWS_REQUIRED', '本插件需要 Windows 本地用户环境。');
-  return join(process.env.LOCALAPPDATA, 'QQMailCodex');
-};
 export async function loadCredentials(environment: NodeJS.ProcessEnv = process.env): Promise<{ account: string; authorizationCode: string }> {
   const account = environment.QQ_MAIL_ADDRESS?.trim().toLowerCase();
   const authorizationCode = environment.QQ_MAIL_AUTH_CODE?.trim();

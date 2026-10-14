@@ -1,16 +1,18 @@
 {
   "name": "qq-mail-codex-plugin",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node --test --test-concurrency=1 tests/*.test.mjs",
-    "start": "node dist/server.js",
-    "check": "node dist/check.js"
+    "build": "node scripts/build.mjs",
+    "test": "npm run build && node --test --test-concurrency=1 tests/unit/*.test.mjs tests/integration/*.test.mjs",
+    "start": "node dist/cli/serve.js",
+    "check": "node dist/cli/check.js",
+    "read-mail": "node dist/cli/read-mail.js",
+    "package": "npm run build && node scripts/package.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
